@@ -1,0 +1,41 @@
+[System]
+Name='fis_theta'
+Type='mamdani'
+Version=2.0
+NumInputs=2
+NumOutputs=1
+NumRules=3
+AndMethod='min'
+OrMethod='max'
+ImpMethod='min'
+AggMethod='max'
+DefuzzMethod='centroid'
+
+[Input1]
+Name='e_theta'
+Range=[-3.5 3.5]
+NumMFs=3
+MF1='NB':'trimf',[-3.5 -2 0]
+MF2='Z':'trimf',[-2 0 2]
+MF3='PB':'trimf',[0 2 3.5]
+
+[Input2]
+Name='de_theta'
+Range=[-8 8]
+NumMFs=3
+MF1='NB':'trimf',[-8 -4 0]
+MF2='Z':'trimf',[-4 0 4]
+MF3='PB':'trimf',[0 4 8]
+
+[Output1]
+Name='F_theta'
+Range=[-15 15]
+NumMFs=3
+MF1='NL':'trimf',[-15 -10 0]
+MF2='Z':'trimf',[-5 0 5]
+MF3='PL':'trimf',[0 10 15]
+
+[Rules]
+1 1, 1 (1) : 1
+2 2, 2 (1) : 1
+3 3, 3 (1) : 1

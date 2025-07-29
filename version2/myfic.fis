@@ -1,0 +1,49 @@
+[System]
+Name='myfic'
+Type='mamdani'
+Version=2.0
+NumInputs=2
+NumOutputs=1
+NumRules=9
+AndMethod='min'
+OrMethod='max'
+ImpMethod='min'
+AggMethod='max'
+DefuzzMethod='centroid'
+
+[Input1]
+Name='Position'
+Range=[0 1]
+NumMFs=3
+MF1='L':'trimf',[-0.5 0 0.5]
+MF2='Z':'trimf',[0 0.5 1]
+MF3='R':'trimf',[0.5 1 1.5]
+
+[Input2]
+Name='theta'
+Range=[-15 15]
+NumMFs=3
+MF1='LT':'trimf',[-30 -15 0]
+MF2='ZT':'trimf',[-15 0 15]
+MF3='RT':'trimf',[0 15 30]
+
+[Output1]
+Name='U'
+Range=[-10 10]
+NumMFs=5
+MF1='RF':'trimf',[-15 -10 -5]
+MF2='RS':'trimf',[-10 -5 0]
+MF3='Z':'trimf',[-5 -5.551e-17 5]
+MF4='AS':'trimf',[0.0422832980972494 5.04228329809725 10.0422832980972]
+MF5='AF':'trimf',[5 10 15]
+
+[Rules]
+1 1, 5 (1) : 1
+1 2, 4 (1) : 1
+1 3, 3 (1) : 1
+2 1, 4 (1) : 1
+2 2, 3 (1) : 1
+2 3, 2 (1) : 1
+3 1, 3 (1) : 1
+3 2, 2 (1) : 1
+3 3, 1 (1) : 1
