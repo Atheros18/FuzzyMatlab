@@ -6,9 +6,17 @@ function dydt = pendcart(y, params, M, m, l, g, I, b1, b2, fis_theta, fis_pos, r
     k21 = params(4);  % Ganancia de error angular
     k22 = params(5);  % Ganancia de derivada del error angular
     k23 = params(6);  % Ganancia de salida del FIS de ángulo
-    
-    w_theta = 0.6;
-    w_pos   = 0.4;
+    w_theta= params(7);
+%     k11 = 0;  % Ganancia de error de posición
+%     k12 = 0;  % Ganancia de derivada del error de posición
+%     k13 = 0;  % Ganancia de salida del FIS de posición
+%     k21 = 0;  % Ganancia de error angular
+%     k22 = 0;  % Ganancia de derivada del error angular
+%     k23 = 0;  % Ganancia de salida del FIS de ángulo
+%     global ref_pos_list
+%     ref_pos = ref_pos_func(t);
+%     w_theta = 0.6;
+%     w_pos   = 0.4;
     %% Variables del sistema
     X         = y(1); 
     X_dot     = y(2);
@@ -21,13 +29,13 @@ function dydt = pendcart(y, params, M, m, l, g, I, b1, b2, fis_theta, fis_pos, r
     e_theta  = ref_theta - theta;
     de_theta = -theta_dot;
     %% Entradas escaladas para FIS
-    e_x_norm     = max(min(k11 * e_x   / 3,  0.999), -0.999);
-    de_x_norm    = max(min(k12 * de_x  / 5,  0.999), -0.999);
+    e_x_norm     = max(min( k11 *  e_x   / 3,  0.999), -0.999);
+    de_x_norm    = max(min( k12 *  de_x  / 5,  0.999), -0.999);
     in_pos       = [e_x_norm, de_x_norm];
     
-    e_theta_norm  = max(min(k21 * e_theta   / pi,  0.999), -0.999);
-    de_theta_norm = max(min(k22 * de_theta / 5,   0.999), -0.999);
-    in_theta      = [e_theta_norm, de_theta_norm];
+    e_theta_norm  = max(min( k21 * e_theta   / pi,  0.999), -0.999);
+    de_theta_norm = max(min( k22 * de_theta / 5,   0.999), -0.999);
+    in_theta      = [ e_theta_norm, de_theta_norm];
 
 
     %% Evaluación de FIS
@@ -46,12 +54,13 @@ function dydt = pendcart(y, params, M, m, l, g, I, b1, b2, fis_theta, fis_pos, r
     %% Saturación
     F_max = 30;
     max_theta = w_theta * F_max;
-    max_pos   = w_pos   * F_max;
+    max_pos   = (1-w_theta) * F_max;
     U_theta = max(min(U_theta,  max_theta), -max_theta);
     U_pos   = max(min(U_pos,    max_pos),   -max_pos);
-
+%     U_pos = 0;
     %% Fuerza total
     F = U_theta + U_pos;
+%     F=0;
 %     if abs(F) = 30
 %         disp("⚠️ Fuerza F extrema: " + F)
 %         dydt = [0; 0; 0; 0];
@@ -59,7 +68,7 @@ function dydt = pendcart(y, params, M, m, l, g, I, b1, b2, fis_theta, fis_pos, r
 %     end
     %% Dinámica del sistema
     D = I + m * l^2;
-    theta_ddot_num = -m * l * cos(theta) * (F + m * l * sin(theta) * theta_dot^2 - b1 * X_dot) / (M + m) - m * g * l * sin(theta) - b2 * theta_dot;
+    theta_ddot_num = -m * l * cos(theta) * (F + m * l * sin(theta) * theta_dot^2 - b1 * X_dot) / (M + m) + m * g * l * sin(theta) - b2 * theta_dot;
     den = (D - (m^2 * l^2 * cos(theta)^2) / (M + m));
     theta_ddot = theta_ddot_num / den;
     X_ddot     = (F - m * l * cos(theta) * theta_ddot + m * l * theta_dot^2 * sin(theta) - b1 * X_dot) / (M + m);

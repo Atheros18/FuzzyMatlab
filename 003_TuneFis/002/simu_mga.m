@@ -1,20 +1,13 @@
-% clc; clear;
-% 
-% % === Parámetros mGA (basado en tu tabla) ===
-% x = (0:0.1:10)';
-% options = genfisOptions("GridPartition");
-% options.NumMembershipFunctions = 5;
-% fisin = genfis(x,@mga_fitness,options);
-% 
-
 clc; clear all; close all;
 
 % === Parámetros mGA (basado en tu tabla) ===
-Nmax = 50;                       % Para prueba rápida (antes 1000)
+Nmax = 1000;                       % Para prueba rápida (antes 1000)
 Npop = 20;                       % Igual que en tabla
-Nvar = 6;                        % Ahora se optimizan 6 variables
-Lc = [0.5, 0.5, 1,    0.5, 0.5, 1];
-Hc = [5,   5,   30,   5,   5,   30];
+Nvar = 7;                        % Ahora se optimizan 6 variables
+Lc = [0, 0 , 0,    0 , 0 , 0 , 0];
+Hc = [3,  5,   30,   pi,   5,   30  ,1 ];
+% Lc = [0.5, 0.5, 1];
+% Hc = [5,   5,   30];
 cr   = 0.6;                      % Crossing factor
 mt   = 0.4;                      % Mutation factor
 sigma_mut = 0.5;                 % Mutación gaussiana estándar
@@ -33,7 +26,7 @@ options = optimoptions(@ga, ...
     'MaxGenerations', Nmax, ...
     'EliteCount', 2, ...
     'CrossoverFraction', cr, ...
-    'MutationFcn', {@mutationgaussian, mt, sigma_mut}, ...
+    'MutationFcn', {@mutationadaptfeasible, mt, sigma_mut}, ...
     'SelectionFcn', @selectiontournament, ...
     'Display', 'iter', ...
     'PlotFcn', {@gaplotbestf}, ...
@@ -44,13 +37,14 @@ options = optimoptions(@ga, ...
 
 % === Mostrar resultados ===
 fprintf('\n🔍 Mejores parámetros encontrados:\n');
-fprintf('params(1) = %.4f\n', bestParams(1));
-fprintf('params(2) = %.4f\n', bestParams(2));
-fprintf('params(3) = %.4f\n', bestParams(3));
-fprintf('params(4) = %.4f\n', bestParams(4));
-fprintf('params(5) = %.4f\n', bestParams(5));
-fprintf('params(6) = %.4f\n', bestParams(6));
-fprintf('ISE mínimo = %.6f\n', bestCost);
+fprintf('params(1) = %.4f;\n', bestParams(1));
+fprintf('params(2) = %.4f;\n', bestParams(2));
+fprintf('params(3) = %.4f;\n', bestParams(3));
+fprintf('params(4) = %.4f;\n', bestParams(4));
+fprintf('params(5) = %.4f;\n', bestParams(5));
+fprintf('params(6) = %.4f;\n', bestParams(6));
+fprintf('params(7) = %.4f;\n', bestParams(7));
+fprintf('% ISE mínimo = %.6f\n', bestCost);
 
 % Guardar resultados
 % save('resultados_mGA.mat', 'bestParams', 'bestCost', 'BESTS');

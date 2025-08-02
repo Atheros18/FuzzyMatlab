@@ -18,28 +18,56 @@ U_theta_log = [];
 %     params(1) = 2.5392;
 %     params(2) = 1.5395;
 %     params(3) = 28.9904;
-%     params(4) = 3.6433;
-%     params(5) = 0.6782;
-%     params(6) = 35.7992;
-    params(1) = 1;
-    params(2) = 1;
-    params(3) = 1;
-%     params(1) = 5.9800;
-%     params(2) = 1.8462;
-%     params(3) = 17.9850;
-    params(4) = 5.9235;
-    params(5) = 0.7504;
-    params(6) = 47.2253;
+
+%     params(1) = 7.5657;
+%     params(2) = 0.3665;
+%     params(3) = 74.3359;
+%     params(4) = 5.9235;
+%     params(5) = 0.7504;
+%     params(6) = 47.2253;
+
+%     params(4) = 6.6982;
+%     params(5) = 0.1828;
+%     params(6) = 93.8246;
+
+% params(1) = 3.9342;
+% params(2) = 6.4664;
+% params(3) = 7.8175;
+% params(4) = -0.3941;
+% params(5) = 3.7857;
+% params(6) = 42.9868;
+% params(7) = 0.5934;
+% ISE mínimo = 224.741980  
+
+% params(1) = 0.7522 ;
+% params(2) = 4.1903 ;
+% params(3) = 31.6849 ;
+% params(4) = -0.3662 ;
+% params(5) = 7.2846 ;
+% params(6) = 26.8811 ;
+% params(7) = 0.8106 ;
+% % ISE mínimo = 194.073657
+
+
+params(1) = 1.0683;
+params(2) = 0.6854;
+params(3) = 25.3671;
+params(4) = 0.3940;
+params(5) = 2.0989;
+params(6) = 24.9118;
+params(7) = 0.3907;
+%acabò por tiempo
 
 %% Cargar controladores .fis
 fis_theta = readfis('fis_theta.fis');
-fis_pos   = readfis('fis_pos_tracking.fis');
+fis_pos   = readfis('fis_pos.fis');
  %% valores iniciales y tiempos de simulacion
 tspan = [0 40];  %segundos
-y0 = [0, 0, pi-0.1, 0];  % estado inicial [X, X', theta, theta']
-
-ref_theta = pi;
+y0 = [1, 0, -pi/8, 0.5];  % estado inicial [X, X', theta, theta']
+w_theta = 0.8;
 ref_pos = 0;
+ref_theta = 0;
+
 
 % [t, y] = ode45(@(t,y) pendcart(t, y, M, m, l, g, I, b1, b2,fis_theta,fis_pos, ref_theta, ref_pos), tspan, y0);
  [t, y] = ode45(@(t, y) pendcart(y, params, M, m, l, g, I, b1, b2, fis_theta, fis_pos, ref_theta, ref_pos), tspan, y0);

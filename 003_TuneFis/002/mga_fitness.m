@@ -1,25 +1,38 @@
 function J = mga_fitness(params)
     tic    
-% Constantes físicas
+
     M = 0.5; m = 0.2; l = 0.3; g = 9.81;
     I = (1/3)*m*l^2; b1 = 0.1; b2 = 0.05;
-
-    ref_theta = pi; 
-    ref_pos = 0;
-    y0 = [0.1 0 pi-0.1 0];
+    ref_theta = 0; ref_pos = 0;
     tspan = [0 10];
+    rho = 5;
 
     fis_theta = readfis('fis_theta.fis');
     fis_pos   = readfis('fis_pos.fis');
+    
 
-        opts = odeset('RelTol',1e-3,'AbsTol',1e-4,'MaxStep',0.05);
+    % Lista de casos
+    y0_list = [
+        0.6 0   0.2  0.1;
+        1.0 0   0.3  0.2;
+        0.4 0   0.1  0.1
+    ];
+
+    total_J = 0;
+    opts = odeset('RelTol',1e-3,'AbsTol',1e-4,'MaxStep',0.05);
     try
-        [~, y] = ode45(@(t,y) pendcart(y, params, M, m, l, g, I, b1, b2, fis_theta, fis_pos, ref_theta, ref_pos), tspan, y0,opts);
-        e_x = y(:,1) - ref_pos;
-        e_theta = y(:,3) - ref_theta;
-        J = trapz(e_x.^2 + 5*e_theta.^2);
+        for i = 1:size(y0_list,1)
+            y0 = y0_list(i,:);
+            [t, y] = ode45(@(t,y) pendcart(y, params, M, m, l, g, I, b1, b2, fis_theta, fis_pos, ref_theta, ref_pos), tspan, y0, opts);
+            e_pos = ref_pos - y(:,1);
+            e_theta = ref_theta - y(:,3);
+            J_i = trapz(t, e_pos.^2 + rho * e_theta.^2);
+            total_J = total_J + J_i;
+        end
+
+        J = total_J / size(y0_list,1);  % promedio
     catch
-        J = 1e6; % Penalizar soluciones inválidas
+        J = 1e6; % penalización
     end
     disp("Tiempo de evaluación: " + toc + " s")
 end
