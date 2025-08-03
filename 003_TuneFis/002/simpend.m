@@ -15,57 +15,49 @@ U_theta_log = [];
     b2 = 0.05;   % coeficiente de friccion pendulo.
     
     %% paramteros MGA
-%     params(1) = 2.5392;
-%     params(2) = 1.5395;
-%     params(3) = 28.9904;
+    params(1) = 7.5657;
+    params(2) = 0.3665;
+    params(3) = 74.3359;
+    params(4) = 5.9235;
+    params(5) = 0.7504;
+    params(6) = 47.2253;
+    
+%     params(1) = 17.8486;
+%     params(2) = 0.4330;
+%     params(3) = 57.9401;
+%     params(4) = 71.6748;
+%     params(5) = 18.8881;
+%     params(6) = 40.7262;
+% % % % params(1) = 4.9265;
+% % % % params(2) = 4.9177;
+% % % % params(3) = 3.5341;
+% % % % params(4) = 0.0156;
+% % % % params(5) = 2.2080;
+% % % % params(6) = 0.2344;
 
-%     params(1) = 7.5657;
-%     params(2) = 0.3665;
-%     params(3) = 74.3359;
-%     params(4) = 5.9235;
-%     params(5) = 0.7504;
-%     params(6) = 47.2253;
-
-%     params(4) = 6.6982;
-%     params(5) = 0.1828;
-%     params(6) = 93.8246;
-
-% params(1) = 3.9342;
-% params(2) = 6.4664;
-% params(3) = 7.8175;
-% params(4) = -0.3941;
-% params(5) = 3.7857;
-% params(6) = 42.9868;
-% params(7) = 0.5934;
-% ISE mínimo = 224.741980  
-
-% params(1) = 0.7522 ;
-% params(2) = 4.1903 ;
-% params(3) = 31.6849 ;
-% params(4) = -0.3662 ;
-% params(5) = 7.2846 ;
-% params(6) = 26.8811 ;
-% params(7) = 0.8106 ;
-% % ISE mínimo = 194.073657
+% params(1) = 2.3449;
+% params(2) = 0.6320;
+% params(3) = 20.3712;
+% params(4) = 3.7986;
+% params(5) = 3.9075;
+% params(6) = 1.4040;
 
 
-params(1) = 1.0683;
-params(2) = 0.6854;
-params(3) = 25.3671;
-params(4) = 0.3940;
-params(5) = 2.0989;
-params(6) = 24.9118;
-params(7) = 0.3907;
-%acabò por tiempo
+% params(1) = 3.0512;
+% params(2) = 3.9457;
+% params(3) = 9.3254;
+% params(4) = 0.7258;
+% params(5) = 4.9376;
+% params(6) = 19.1497;
 
 %% Cargar controladores .fis
-fis_theta = readfis('fis_theta.fis');
-fis_pos   = readfis('fis_pos.fis');
+fis_theta = readfis('files_created/fis_theta.fis');
+fis_pos   = readfis('files_created/fis_pos.fis');
  %% valores iniciales y tiempos de simulacion
-tspan = [0 40];  %segundos
-y0 = [1, 0, -pi/8, 0.5];  % estado inicial [X, X', theta, theta']
-w_theta = 0.8;
-ref_pos = 0;
+tspan = [0 59];  %segundos
+y0 = [1, -1, -0.1, 0];  % estado inicial [X, X', theta, theta']
+
+ref_pos = -2;
 ref_theta = 0;
 
 
@@ -86,7 +78,7 @@ grid on;
 
 
 min_len = min([length(t), length(error_theta_log), length(error_pos_log), length(U_pos_log),length(U_theta_log)]);
-
+%%
 figure;
 subplot(2,2,1);
 plot(t(1:min_len), error_theta_log(1:min_len), 'b');
@@ -112,10 +104,10 @@ xlabel('Time (s)');
 ylabel('U pos');
 title('U pos');
 
-figure;
-subplot(1,2,1);
-gensurf(fis_theta);
-title('Superficie de inferencia - fis\_theta');
-subplot(1,2,2);
-gensurf(fis_pos);
-title('Superficie de inferencia - fis\_pos');
+% figure;
+% subplot(1,2,1);
+% gensurf(fis_theta);
+% title('Superficie de inferencia - fis\_theta');
+% subplot(1,2,2);
+% gensurf(fis_pos);
+% title('Superficie de inferencia - fis\_pos');

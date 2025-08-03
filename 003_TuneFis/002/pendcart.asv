@@ -38,8 +38,8 @@ function dydt = pendcart(y, params, M, m, l, g, I, b1, b2, fis_theta, fis_pos, r
     U_theta = k23 * u_theta_fis;
 
     %% Optional: individual saturation for debugging
-    F_max = 100;
-    w_theta = 0.3;
+    F_max = 50;
+    w_theta = 0.9;
     max_theta = w_theta * F_max;
     max_pos   = (1 - w_theta) * F_max;
     U_theta = max(min(U_theta,  max_theta), -max_theta);
