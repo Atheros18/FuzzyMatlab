@@ -54,10 +54,10 @@ U_theta_log = [];
 fis_theta = readfis('files_created/fis_theta.fis');
 fis_pos   = readfis('files_created/fis_pos.fis');
  %% valores iniciales y tiempos de simulacion
-tspan = [0 59];  %segundos
-y0 = [1, -1, -0.1, 0];  % estado inicial [X, X', theta, theta']
+tspan = [0 10];  %segundos
+y0 = [1, -1, -0.2, 0];  % estado inicial [X, X', theta, theta']
 
-ref_pos = -2;
+ref_pos = 0;
 ref_theta = 0;
 
 

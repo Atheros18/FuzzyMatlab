@@ -10,14 +10,15 @@ function dydt = pendcart(y, params, M, m, l, g, I, b1, b2, fis_theta, fis_pos, r
 
     %% System states
     X         = y(1);
-    X_dot     = y(2);
+    X_dot     = y(2);   
     theta     = y(3);
     theta_dot = y(4);
 
     %% Error calculations
     e_x      = ref_pos - X;
     de_x     = -X_dot;
-    e_theta  = ref_theta - theta;
+    e_theta = wrapToPi(ref_theta - theta);
+%     e_theta  = ref_theta - theta;
     de_theta = -theta_dot;
 
     %% Normalized inputs for FIS
@@ -39,7 +40,7 @@ function dydt = pendcart(y, params, M, m, l, g, I, b1, b2, fis_theta, fis_pos, r
 
     %% Optional: individual saturation for debugging
     F_max = 100;
-    w_theta = 0.3;
+    w_theta = 0.9;
     max_theta = w_theta * F_max;
     max_pos   = (1 - w_theta) * F_max;
     U_theta = max(min(U_theta,  max_theta), -max_theta);
