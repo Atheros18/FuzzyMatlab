@@ -1,71 +1,71 @@
 function J = mga_fitness(params)
-% Objective: robust ISE with soft penalties + debug
-    %% Physical constants
-    M = 0.5; m = 0.2; l = 0.3; g = 9.81; I = (1/3)*m*l^2; b1 = 0.1; b2 = 0.05;
+% ===== Physical constants (keep consistent) =====
+M=0.5; m=0.2; l=0.3; g=9.81; I=(1/3)*m*l^2; b1=0.1; b2=0.05;
+Fmax = 30;
+% lb = [0 0  0   0 0  0];
+% ub = [2 2  8   3 3 40];
+% params = max(min(params, ub), lb);
 
-    %% References
-    ref_theta = 0; ref_pos = 0; rho = 5;
+% ===== Load your FIS =====
+persistent fis_theta fis_pos
+if isempty(fis_theta)
+    fis_theta = readfis('files_created/fis_theta.fis');   % Mamdani 2-in/1-out [-1..1]
+    fis_pos   = readfis('files_created/fis_pos.fis');
+end
 
-    %% Load FIS (persist for speed)
-    persistent fis_theta fis_pos
-    if isempty(fis_theta)
-        fis_theta = readfis('files_created/fis_theta.fis');
-        fis_pos   = readfis('files_created/fis_pos.fis');
-    end
+% ===== Simulation config =====
+Tmax = 3.0;                        % seconds
+rho  = 4.0;                        % angle weight
+opts = odeset('RelTol',1e-6,'AbsTol',1e-8, ...
+              'Events',@(t,y) stop_events(t,y), ...
+              'MaxStep', 1e-2);
 
-    %% Scenarios (start simple; luego agrega más)
-    y0_list = [0 0 0.2 0];    % near upright
-    T = 6; tspan = [0 T];
-    opts = odeset('RelTol',1e-3,'AbsTol',1e-4,'MaxStep',0.02);
+% Multiple ICs improves robustness (small grid)
+ICs = [
+    0.15  0     0.10  0;    % mild offsets
+    0     0     0.15  0;    % angle only
+    0.25  0     0.00  0;    % position only
+    -0.2  0    -0.10  0;    % opposite
+];
 
-    %% Debug flags
-    DEBUG = false;  shown = 0;   % pon true si quieres prints
+J = 0;
+try
+    for k=1:size(ICs,1)
+        y0 = ICs(k,:).';
+        t0 = 0; tf = Tmax;
 
-    J = 0;
-    for k = 1:size(y0_list,1)
-        y0 = y0_list(k,:);
-        try
-            % reset logs each run
-            global error_theta_log error_pos_log U_pos_log U_theta_log F_log
-            error_theta_log = []; error_pos_log = []; U_pos_log = []; U_theta_log = []; F_log = [];
+        % Sim loop with control-in-the-loop
+        dyn = @(t,y) pendcart_dyn(t, y, M,m,l,g,I,b1,b2, ...
+                    fuzzy_control_force(y, fis_theta, fis_pos, params, Fmax));
 
-            [t, y] = ode45(@(t,y) pendcart(t,y, params, M, m, l, g, I, b1, b2, ...
-                                 fis_theta, fis_pos, ref_theta, ref_pos), tspan, y0, opts);
+        [t,Y,te,ye,ie] = ode45(dyn, [t0 tf], y0, opts);
 
-            % Errors
-            e_pos   = (ref_pos - y(:,1));
-            e_theta = (ref_theta - y(:,3));
+        X=Y(:,1); th=Y(:,3);
+        ex = -X; eth = -th;
 
-            % ---- Soft penalties instead of hard abort ----
-            t_grace = 0.3;                           % 300 ms sin castigo
-            mask = (t > t_grace);
+        % Trapezoidal integral of cost
+        L = ex.^2 + rho*eth.^2;
+        Jk = trapz(t, L);
 
-            % over-angle/rail amounts
-            ang_over  = max(0, abs(y(:,3)) - 0.9*pi);
-            rail_over = max(0, abs(y(:,1)) - 1.5);
-
-            % penalización integrada (ajusta coeficientes si hace falta)
-            pen = trapz(t(mask), 1e4*(ang_over(mask).^2)) + ...
-                  trapz(t(mask), 1e3*(rail_over(mask).^2));
-
-            if DEBUG && shown < 5 && (pen > 0)
-                t_hit = t(find(ang_over>0 | rail_over>0, 1, 'first'));
-                fprintf('[PEN] t=%.3f  ang=%g  rail=%g  params=[%.2f %.2f %.1f | %.2f %.2f %.1f]\n',...
-                    t_hit, max(ang_over), max(rail_over), params);
-                shown = shown + 1;
-            end
-            % ---------------------------------------------
-
-            % Control effort penalty (muy pequeño)
-            if isempty(F_log), ce = 0; else, ce = trapz(t, 1e-3*(F_log.^2)); end
-
-            % Fitness total
-            Jk = trapz(t, e_pos.^2 + rho*(e_theta/pi).^2) + ce + pen;
-            J  = J + Jk;
-
-        catch
-            % solo si ODE falla de verdad
-            J = J + 1e6;
+        % Penalties
+        hit_bounds = ~isempty(te);
+        if hit_bounds
+            Jk = Jk + 1e4 + 1e4*length(te);  % big penalty
         end
+
+        % Smooth penalties for large control activity (optional)
+        % (You can log F inside dyn via nested function if you want.)
+
+        J = J + Jk;
     end
+
+catch
+    % If solver fails or NaN appears, punish hard
+    J = 1e8;
+end
+
+% Small regularization to discourage extreme params
+if any(~isfinite(params)) || any(abs(params)>100)
+    J = J + 1e6;
+end
 end
