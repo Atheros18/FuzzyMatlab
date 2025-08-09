@@ -1,4 +1,4 @@
-function F = fuzzy_control_force(y, fis_theta, fis_pos, params, ref_x, ref_th, Fmax)
+function F = fuzzy_control_force(y, fis_pos, fis_theta, params, ref_pos, ref_th, Fmax)
 % params = [Ke_pos, Kde_pos, Umax_pos, Ke_theta, Kde_theta, Umax_theta]
 X = y(1);  Xd = y(2);  th = y(3);  thd = y(4);
 
@@ -9,7 +9,7 @@ Ke_theta  = params(4);  Kde_theta  = params(5);  Umax_theta = params(6);
 % ref_x = 0; ref_th = 0;  % upright, at origin
 
 % Errors
-ex   = ref_x  - X;
+ex   = ref_pos  - X;
 dex  = -Xd;
 eth  = ref_th - th;    % θ=0 is upright
 deth = -thd;

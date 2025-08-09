@@ -1,32 +1,33 @@
 clc; clear; close all;
 
 % === GA bounds ===
-lb = [0 0  0   0 0  0];     % lower bounds
-ub = [2 2  8   3 3 40];     % upper bounds
+lb = [0    0    0.5   0    0    10];   % Opción A segura
+ub = [3    5    20    pi   8    40];
 
 % === GA options ===
 opts = optimoptions('ga', ...
-    'PopulationSize', 20, ...
-    'MaxGenerations', 50, ...
-    'EliteCount', 2, ...
-    'CrossoverFraction', 0.6, ...
-    'MutationFcn', {@mutationgaussian, 0.4, 0.5}, ...
-    'Display', 'iter', ...
-    'PlotFcn', {@gaplotbestf}, ...
-    'UseParallel', true);  % set true if you have Parallel Toolbox
+  'PopulationSize', 24, ...
+  'MaxGenerations', 40, ...
+  'EliteCount', 2, ...
+  'CrossoverFraction', 0.65, ...
+  'CreationFcn', 'gacreationlinearfeasible', ...
+  'MutationFcn', 'mutationadaptfeasible', ...  % <- fixes your warning
+  'CrossoverFcn', 'crossoverscattered', ...
+  'ConstraintTolerance', 1e-6, ...
+  'Display','iter', 'PlotFcn',{@gaplotbestf,@gaplotstopping}, ...
+  'UseParallel', true);
+[bestParams,bestJ] = ga(@mga_fitness, 6, [], [], [], [], lb, ub, [], opts);
 
-% === Run GA ===
-[bestParams, bestJ] = ga(@mga_fitness, 6, [], [], [], [], lb, ub, [], opts);
+paramNames = {'Ke_pos','Kde_pos','Umax_pos','Ke_theta','Kde_theta','Umax_theta'};
+assert(numel(bestParams) == numel(paramNames), 'Param count mismatch.');
+
+namesStr  = strjoin(paramNames, ' ');
+valuesStr = sprintf('%.3g ', bestParams(:).');  % full precision, force row
 
 % === Show results ===
 disp('--- Best parameters found ---');
-disp('parameteres :]');
-disp('[Ke_pos Kde_pos Umax_Pos Ke_theta Kde_theta Umax_theta]');
-% disp([num2str(bestParams(1)) num2str(bestParams(1))])
-disp(['Ke_pos    = ' num2str(bestParams(1))]);
-disp(['Kde_pos   = ' num2str(bestParams(2))]);
-disp(['Umax_pos  = ' num2str(bestParams(3))]);
-disp(['Ke_theta  = ' num2str(bestParams(4))]);
-disp(['Kde_theta = ' num2str(bestParams(5))]);
-disp(['Umax_theta= ' num2str(bestParams(6))]);
-disp(['Best Fitness J = ' num2str(bestJ)]);
+disp('parameters :]');
+disp('[Ke_pos Kde_pos Umax_pos Ke_theta Kde_theta Umax_theta]');
+disp(['[' namesStr '] = [' strtrim(valuesStr) '];']);  % copy-pasteable parallel assignment
+fprintf('Best Fitness J = %.3g\n', bestJ);
+

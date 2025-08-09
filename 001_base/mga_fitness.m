@@ -2,9 +2,11 @@ function J = mga_fitness(params)
 % ===== Physical constants (keep consistent) =====
 M=0.5; m=0.2; l=0.3; g=9.81; I=(1/3)*m*l^2; b1=0.1; b2=0.05;
 Fmax = 30;
-% lb = [0 0  0   0 0  0];
-% ub = [2 2  8   3 3 40];
-% params = max(min(params, ub), lb);
+ref_pos = 0 ;
+ref_theta = 0;
+lb = [0    0    0.5   0    0    10];   % Opción A segura
+ub = [3    5    20    pi   8    40];
+params = max(min(params, ub), lb);
 
 % ===== Load your FIS =====
 persistent fis_theta fis_pos
@@ -36,7 +38,7 @@ try
 
         % Sim loop with control-in-the-loop
         dyn = @(t,y) pendcart_dyn(t, y, M,m,l,g,I,b1,b2, ...
-                    fuzzy_control_force(y, fis_theta, fis_pos, params, Fmax));
+                    fuzzy_control_force(y, fis_pos, fis_theta, params, ref_pos, ref_theta,Fmax));
 
         [t,Y,te,ye,ie] = ode45(dyn, [t0 tf], y0, opts);
 
