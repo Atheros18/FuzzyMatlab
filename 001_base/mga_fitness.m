@@ -5,7 +5,8 @@ Fmax = 30;
 % lb = [0 0  0   0 0  0];
 % ub = [2 2  8   3 3 40];
 % params = max(min(params, ub), lb);
-
+ref_pos = 0 ;
+ref_theta = 0;
 % ===== Load your FIS =====
 persistent fis_theta fis_pos
 if isempty(fis_theta)
@@ -35,8 +36,7 @@ try
         t0 = 0; tf = Tmax;
 
         % Sim loop with control-in-the-loop
-        dyn = @(t,y) pendcart_dyn(t, y, M,m,l,g,I,b1,b2, ...
-                    fuzzy_control_force(y, fis_theta, fis_pos, params, Fmax));
+        dyn = @(t,y) pendcart_dyn(t, y, M,m,l,g,I,b1,b2, fuzzy_control_force(y,params, fis_pos, fis_theta, ref_pos, ref_theta,Fmax));
 
         [t,Y,te,ye,ie] = ode45(dyn, [t0 tf], y0, opts);
 
