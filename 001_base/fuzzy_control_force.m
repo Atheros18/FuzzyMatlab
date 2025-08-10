@@ -1,40 +1,31 @@
-function F = fuzzy_control_force(y, fis_pos, fis_theta, params, ref_pos, ref_th, Fmax)
-% params = [Ke_pos, Kde_pos, Umax_pos, Ke_theta, Kde_theta, Umax_theta]
-X = y(1);  Xd = y(2);  th = y(3);  thd = y(4);
+function F = fuzzy_control_force(y, fis_theta, fis_pos, params, ref_pos, ref_theta,Fmax)
+% y = [X; Xdot; theta; thetadot]; ref_x=0, ref_theta=0
 
+    X = y(1);  Xd = y(2);  th = y(3);  thd = y(4);
 Ke_pos    = params(1);  Kde_pos    = params(2);  Umax_pos   = params(3);
-Ke_theta  = params(4);  Kde_theta  = params(5);  Umax_theta = params(6);
+Ke_th  = params(4);  Kde_th  = params(5);  Umax_th = params(6);
+    % Errors
+    ex  = ref_pos-X;          dex  = -Xd;
+    eth = ref_theta-th;         deth = -thd;
 
-% References
-% ref_x = 0; ref_th = 0;  % upright, at origin
+    % Normalize into [-1,1] with stronger leverage (EDIT #3, path B)
+    exn   = max(min(Ke_pos * (ex/1.0),  1), -1);
+    dexn  = max(min(Kde_pos* (dex/2.0), 1), -1);
+    ethn  = max(min(Ke_th  * (eth/pi),  1), -1);   % angle scale by pi
+    dethn = max(min(Kde_th * (deth/5.0), 1), -1);
 
-% Errors
-ex   = ref_pos  - X;
-dex  = -Xd;
-eth  = ref_th - th;    % θ=0 is upright
-deth = -thd;
+    % Bias removal (EDIT #2)
+    persistent u0p u0t
+    if isempty(u0p), u0p = evalfis(fis_pos,   [0 0]); end
+    if isempty(u0t), u0t = evalfis(fis_theta, [0 0]); end
 
-% Normalize to [-1,1] then scale with Ke/Kde (mGA will adapt)
-exn   = max(min(Ke_pos   * ex/3,   1), -1);
-dexn  = max(min(Kde_pos  * dex/5,  1), -1);
-ethn  = max(min(Ke_theta * eth/pi, 1), -1);
-dethn = max(min(Kde_theta*deth/8,  1), -1);
+    u_pos   = evalfis(fis_pos,   [exn,  dexn]);
+    u_theta = evalfis(fis_theta, [ethn, dethn]);
 
-% FIS outputs (assume both FIS return roughly in [-1,1])
-% Upos   = Umax_pos   * evalfis(fis_pos,   [exn,  dexn]);
-% Position force
-Upos_raw = evalfis(fis_pos, [exn, dexn]);
-persistent U0_pos; if isempty(U0_pos), U0_pos = evalfis(fis_pos, [0 0]); end
-Upos     = Umax_pos * (Upos_raw - U0_pos);
+    Upos   = Umax_pos   * (u_pos   - u0p);
+    Utheta = Umax_th    * (u_theta - u0t);
 
-% Angle force (you already did this)
-Utheta_raw = evalfis(fis_theta, [ethn, dethn]);
-persistent U0_th;  if isempty(U0_th),  U0_th  = evalfis(fis_theta, [0 0]); end
-Utheta  = Umax_theta * (Utheta_raw - U0_th);
-
-
-% Utheta = Umax_theta * evalfis(fis_theta, [ethn, dethn]);
-
-F = Upos + Utheta;
-F = max(min(F, Fmax), -Fmax);
+    % Combine and saturate (keep your actuator limits)
+    F = Upos + Utheta;
+    F = max(min(F, Fmax), -Fmax);
 end

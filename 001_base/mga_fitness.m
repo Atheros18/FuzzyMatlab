@@ -1,73 +1,61 @@
 function J = mga_fitness(params)
-% ===== Physical constants (keep consistent) =====
-M=0.5; m=0.2; l=0.3; g=9.81; I=(1/3)*m*l^2; b1=0.1; b2=0.05;
-Fmax = 30;
-ref_pos = 0 ;
-ref_theta = 0;
-lb = [0    0    0.5   0    0    10];   % Opción A segura
-ub = [3    5    20    pi   8    40];
-params = max(min(params, ub), lb);
+% params = [Ke_pos, Kde_pos, Umax_pos, Ke_th, Kde_th, Umax_th]
+% θ = 0 is upright. States: [X, Xdot, θ, θdot]
 
-% ===== Load your FIS =====
-persistent fis_theta fis_pos
-if isempty(fis_theta)
-    fis_theta = readfis('files_created/fis_theta.fis');   % Mamdani 2-in/1-out [-1..1]
-    fis_pos   = readfis('files_created/fis_pos.fis');
-end
+    persistent fis_pos fis_theta
+    if isempty(fis_pos),   fis_pos   = readfis('files_created/fis_pos.fis');   end
+    if isempty(fis_theta), fis_theta = readfis('files_created/fis_theta.fis'); end
 
-% ===== Simulation config =====
-Tmax = 3.0;                        % seconds
-rho  = 4.0;                        % angle weight
-opts = odeset('RelTol',1e-6,'AbsTol',1e-8, ...
-              'Events',@(t,y) stop_events(t,y), ...
-              'MaxStep', 1e-2);
+    % --- GA variables unpack ---
+    Ke_pos   = params(1);  Kde_pos  = params(2);  Umax_pos   = params(3);
+    Ke_th    = params(4);  Kde_th   = params(5);  Umax_th    = params(6);
 
-% Multiple ICs improves robustness (small grid)
-ICs = [
-    0.15  0     0.10  0;    % mild offsets
-    0     0     0.15  0;    % angle only
-    0.25  0     0.00  0;    % position only
-    -0.2  0    -0.10  0;    % opposite
-];
+    % --- Plant constants (adjust if needed) ---
+    M=0.5; m=0.2; l=0.3; g=9.81; I=(1/3)*m*l^2; b1=0.1; b2=0.05;
 
-J = 0;
-try
-    for k=1:size(ICs,1)
-        y0 = ICs(k,:).';
-        t0 = 0; tf = Tmax;
+    % --- Horizon & weights (EDIT #1) ---
+    Tmax = 8.0;
+    wX   = 2.0;      % position integral weight
+    rho  = 3.0;      % angle integral weight
+    wXT  = 2.0;      % terminal position
+    wVT  = 0.5;      % terminal velocity
 
-        % Sim loop with control-in-the-loop
-        dyn = @(t,y) pendcart_dyn(t, y, M,m,l,g,I,b1,b2, ...
-                    fuzzy_control_force(y, fis_pos, fis_theta, params, ref_pos, ref_theta,Fmax));
+    % --- Initial conditions set (try a small batch) ---
+    ICs = [
+        0,    0,   0.15, 0;     % small angle
+        0.2,  0,   0.10, 0;     % position offset + small angle
+        -0.2, 0,  -0.10, 0;
+    ];
 
-        [t,Y,te,ye,ie] = ode45(dyn, [t0 tf], y0, opts);
+    J = 0;
+    try
+        for k = 1:size(ICs,1)
+            y0 = ICs(k,:).';
+            t0 = 0; tf = Tmax;
 
-        X=Y(:,1); th=Y(:,3);
-        ex = -X; eth = -th;
+            dyn = @(t,y) pendcart_dyn(t,y, M,m,l,g,I,b1,b2, ...
+                        @(yy) fuzzy_control_force(yy, fis_pos, fis_theta, ...
+                                Ke_pos, Kde_pos, Umax_pos, Ke_th, Kde_th, Umax_th));
 
-        % Trapezoidal integral of cost
-        L = ex.^2 + rho*eth.^2;
-        Jk = trapz(t, L);
+            opts = odeset('RelTol',1e-6,'AbsTol',1e-8,'MaxStep',1e-2);
+            [t,Y] = ode45(dyn, [t0 tf], y0, opts);
 
-        % Penalties
-        hit_bounds = ~isempty(te);
-        if hit_bounds
-            Jk = Jk + 1e4 + 1e4*length(te);  % big penalty
+            % --- Cost (EDIT #1 terminal terms) ---
+            X  = Y(:,1);   Xd = Y(:,2);   th = Y(:,3);
+            ex = -X;       eth = -th;     % ref_x = 0, ref_theta = 0
+
+            L  = wX*ex.^2 + rho*eth.^2;
+            Jk = trapz(t, L);
+            Jk = Jk + wXT*(X(end)^2) + wVT*(Xd(end)^2);
+
+            % Gentle penalty if solver hit rails too much (optional)
+
+
+            if ~isfinite(Jk), J = J + 1e6; else, J = J + Jk; end
         end
+        J = J / size(ICs,1);
 
-        % Smooth penalties for large control activity (optional)
-        % (You can log F inside dyn via nested function if you want.)
-
-        J = J + Jk;
+    catch
+        J = 1e7;  % penalize failures
     end
-
-catch
-    % If solver fails or NaN appears, punish hard
-    J = 1e8;
-end
-
-% Small regularization to discourage extreme params
-if any(~isfinite(params)) || any(abs(params)>100)
-    J = J + 1e6;
-end
 end

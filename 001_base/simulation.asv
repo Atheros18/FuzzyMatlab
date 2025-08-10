@@ -20,7 +20,7 @@ fis_pos   = readfis('files_created/fis_pos.fis');
 
 y0 = [-0.2; 0.4; -0.1; 0.1];
 tspan = [0 10];
-ref_pos = -0.2;
+ref_pos = -0.;
 ref_theta = 0;
 
 opts = odeset('RelTol',1e-6,'AbsTol',1e-8,'MaxStep',1e-3);
