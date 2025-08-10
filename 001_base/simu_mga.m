@@ -2,7 +2,7 @@ clc; clear; rng('shuffle');
 
 % --- Bounds (EDIT #3, PATH B assumed) ---
 lb = [0,   0,   0.5,   0,   0,   10];
-ub = [3.5, 5.0, 20,    pi,  8.0, 40];
+ub = [3.5, 5.0, 8,    pi,  8.0, 40];
 
 seed = [1.2, 1.0, 6,   0.6, 2.0, 25];  % nonzero Umax_pos
 

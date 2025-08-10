@@ -14,11 +14,9 @@ ref_pos = 0;
 ref_theta = 0;
 
 opts = odeset('RelTol',1e-6,'AbsTol',1e-8,'MaxStep',1e-3);
-
-            dyn = @(t,y) pendcart_dyn(t,y, M,m,l,g,I,b1,b2, @(yy) fuzzy_control_force(yy, fis_theta, fis_pos, params0, ref_pos, ref_theta,Fmax));
-
+dyn = @(t,y) pendcart_dyn(t,y, M,m,l,g,I,b1,b2, @(yy) fuzzy_control_force(yy, fis_pos, fis_theta, params0, ref_pos, ref_theta,Fmax));
 [t,Y] = ode45(dyn, tspan , y0, opts);
 
-subplot(3,1,1), plot(t, Y(:,1)); grid on; ylabel('X (m)')
-subplot(3,1,2), plot(t, Y(:,3)*180/pi); grid on; ylabel('\theta (deg)')
-subplot(3,1,3), plot(t, Y(:,2)); grid on; ylabel('Xdot (m/s)'), xlabel('time (s)')
+subplot(2,1,1), plot(t, Y(:,1)); grid on; ylabel('X (m)')
+subplot(2,1,2), plot(t, Y(:,3)*180/pi); grid on; ylabel('\theta (deg)')
+% subplot(3,1,3), plot(t, Y(:,2)); grid on; ylabel('Xdot (m/s)'), xlabel('time (s)')

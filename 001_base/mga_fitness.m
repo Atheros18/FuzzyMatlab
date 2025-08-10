@@ -15,6 +15,15 @@ function J = mga_fitness(params0)
     ref_theta = 0;
     ref_pos = 0;
     Fmax = 30;
+    
+    %%
+    % --- Feasibility windows + penalty ---
+    Xwin  = 0.05;           % 5 cm
+    Vwin  = 0.10;           % 0.10 m/s
+    Thwin = 3*pi/180;       % 3 deg
+    Wwin  = 5*pi/180;       % 5 deg/s
+    HARD  = 1e4;
+    %%
     % --- Horizon & weights (EDIT #1) ---
     Tmax = 8.0;
     wX   = 2.0;      % position integral weight
@@ -34,20 +43,26 @@ function J = mga_fitness(params0)
             y0 = ICs(k,:).';
             t0 = 0; tf = Tmax;
 
-            dyn = @(t,y) pendcart_dyn(t,y, M,m,l,g,I,b1,b2, @(yy) fuzzy_control_force(yy, fis_theta, fis_pos, params0, ref_pos, ref_theta,Fmax));
+            dyn = @(t,y) pendcart_dyn(t,y, M,m,l,g,I,b1,b2, @(yy) fuzzy_control_force(yy, fis_pos, fis_theta, params0, ref_pos, ref_theta,Fmax));
 
-            opts = odeset('RelTol',1e-6,'AbsTol',1e-8,'MaxStep',1e-2);
-            [t,Y] = ode45(dyn, [t0 tf], y0, opts);
+            ev   = @(t,y) stop_events(t,y);  % you already have stop_events.m
+            opts = odeset('RelTol',1e-6,'AbsTol',1e-8,'MaxStep',1e-2,'Events',ev);
+            [t,Y,te] = ode45(dyn, [t0 tf], y0, opts);
 
-            % --- Cost (EDIT #1 terminal terms) ---
-            X  = Y(:,1);   Xd = Y(:,2);   th = Y(:,3);
-            ex = ref_pos-X;       eth = ref_theta-th;     % ref_x = 0, ref_theta = 0
+            X  = Y(:,1);   Xd = Y(:,2);   th = Y(:,3);   thd = Y(:,4);
+            ex = ref_pos - X;             eth = ref_theta - th;
 
             L  = wX*ex.^2 + rho*eth.^2;
-            Jk = trapz(t, L);
-            Jk = Jk + wXT*(X(end)^2) + wVT*(Xd(end)^2);
+            Jk = trapz(t, L) + wXT*X(end)^2 + wVT*Xd(end)^2;
 
-            % Gentle penalty if solver hit rails too much (optional)
+            % penalize early exit (hit event)
+            if ~isempty(te), Jk = Jk + HARD/2; end
+
+            % hard terminal box
+            if abs(X(end))  > Xwin  || abs(Xd(end)) > Vwin || ...
+               abs(th(end)) > Thwin || abs(thd(end))> Wwin
+                Jk = Jk + HARD;
+            end
 
 
             if ~isfinite(Jk), J = J + 1e6; else, J = J + Jk; end
