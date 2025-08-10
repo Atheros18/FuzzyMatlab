@@ -1,9 +1,7 @@
 function F = fuzzy_control_force(y, fis_theta, fis_pos, params, ref_pos, ref_theta,Fmax)
-% y = [X; Xdot; theta; thetadot]; ref_x=0, ref_theta=0
-
     X = y(1);  Xd = y(2);  th = y(3);  thd = y(4);
-Ke_pos    = params(1);  Kde_pos    = params(2);  Umax_pos   = params(3);
-Ke_th  = params(4);  Kde_th  = params(5);  Umax_th = params(6);
+    Ke_pos    = params(1);  Kde_pos    = params(2);  Umax_pos   = params(3);
+    Ke_th  = params(4);  Kde_th  = params(5);  Umax_th = params(6);
     % Errors
     ex  = ref_pos-X;          dex  = -Xd;
     eth = ref_theta-th;         deth = -thd;

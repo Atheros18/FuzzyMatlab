@@ -8,7 +8,7 @@ function dydt = pendcart_dyn(~, y, M, m, l, g, I, b1, b2, ufun)
     D = I + m*l^2 - (m^2*l^2*cos(th)^2)/(M+m);
 
     thdd_num = - m*l*cos(th) * (F + m*l*sin(th)*thd^2 - b1*Xd)/(M+m) ...
-               - m*g*l*sin(th) ...     % <-- fix sign (was +)
+               + m*g*l*sin(th) ...     % <-- fix sign (was +)
                - b2*thd;
 
     thdd = thdd_num / D;

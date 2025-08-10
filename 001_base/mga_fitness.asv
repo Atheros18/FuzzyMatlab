@@ -1,4 +1,4 @@
-function J = mga_fitness(params0)
+function J = mga_fitness(params)
 % params = [Ke_pos, Kde_pos, Umax_pos, Ke_th, Kde_th, Umax_th]
 % θ = 0 is upright. States: [X, Xdot, θ, θdot]
 
@@ -7,20 +7,19 @@ function J = mga_fitness(params0)
     if isempty(fis_theta), fis_theta = readfis('files_created/fis_theta.fis'); end
 
     % --- GA variables unpack ---
-%     Ke_pos   = params(1);  Kde_pos  = params(2);  Umax_pos   = params(3);
-%     Ke_th    = params(4);  Kde_th   = params(5);  Umax_th    = params(6);
+    Ke_pos   = params(1);  Kde_pos  = params(2);  Umax_pos   = params(3);
+    Ke_th    = params(4);  Kde_th   = params(5);  Umax_th    = params(6);
 
     % --- Plant constants (adjust if needed) ---
     M=0.5; m=0.2; l=0.3; g=9.81; I=(1/3)*m*l^2; b1=0.1; b2=0.05;
-    ref_theta = 0;
-    ref_pos = 0;
-    Fmax = 30;
+
     % --- Horizon & weights (EDIT #1) ---
     Tmax = 8.0;
     wX   = 2.0;      % position integral weight
     rho  = 3.0;      % angle integral weight
     wXT  = 2.0;      % terminal position
     wVT  = 0.5;      % terminal velocity
+
     % --- Initial conditions set (try a small batch) ---
     ICs = [
         0,    0,   0.15, 0;     % small angle
@@ -41,7 +40,7 @@ function J = mga_fitness(params0)
 
             % --- Cost (EDIT #1 terminal terms) ---
             X  = Y(:,1);   Xd = Y(:,2);   th = Y(:,3);
-            ex = ref_pos-X;       eth = ref_theta-th;     % ref_x = 0, ref_theta = 0
+            ex = -X;       eth = -th;     % ref_x = 0, ref_theta = 0
 
             L  = wX*ex.^2 + rho*eth.^2;
             Jk = trapz(t, L);
