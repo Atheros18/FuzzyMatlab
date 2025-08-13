@@ -4,7 +4,7 @@ function J = mga_fitness(params)
 
     % ---- Plant constants (keep consistent with your repo) ----
     M=0.5; m=0.2; l=0.3; g=9.81; I=(1/3)*m*l^2; b1=0.1; b2=0.05;
-    Fmax = 10;                 % actuator saturation used in control & penalty
+    Fmax = 60;                 % actuator saturation used in control & penalty
 
     % ---- References ----
     ref_pos   = 0;
@@ -25,7 +25,7 @@ function J = mga_fitness(params)
     % ---- Horizons & weights ----
     Tshort = [0 1.5];           % screening horizon
     Tlong  = [0 8.0];           % full horizon
-    short_thresh = 5;           % if J_short < this -> run long pass
+    short_thresh = 5;           % if J_short < thisd -> run long pass
 
     wX   = 2.0;                 % ∫ wX*ex^2
     rho  = 3.0;                 % ∫ rho*eth^2
