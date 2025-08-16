@@ -1,7 +1,8 @@
 function J = mga_fitness(params)
 % params = [Ke_pos, Kde_pos, Umax_pos, Ke_th, Kde_th, Umax_th]
 % θ = 0 is upright. States: [X, Xdot, θ, θdot]
-
+    %disp('Iniciando')
+    tic
     % ---- Plant constants (keep consistent with your repo) ----
     M=0.5; m=0.2; l=0.3; g=9.81; I=(1/3)*m*l^2; b1=0.1; b2=0.05;
     Fmax = 60;                 % actuator saturation used in control & penalty
@@ -17,14 +18,13 @@ function J = mga_fitness(params)
 
     % ---- Robustness IC set ----
     ICs = [
-        0.00   0     0.15   0
-        0.20   0     0.10   0
-       -0.20   0    -0.10   0
+        0.20   0.5     0.10   0
+       -0.20   -0.5    -0.10   0
     ];
 
     % ---- Horizons & weights ----
     Tshort = [0 1.5];           % screening horizon
-    Tlong  = [0 8.0];           % full horizon
+    Tlong  = [0 5.0];           % full horizon
     short_thresh = 5;           % if J_short < thisd -> run long pass
 
     wX   = 2.0;                 % ∫ wX*ex^2
@@ -97,4 +97,5 @@ function J = mga_fitness(params)
     else
         J = J_short + 1e3;   % not promising → don’t spend time
     end
+    disp("Tiempo de evaluación: " + toc + " s")
 end

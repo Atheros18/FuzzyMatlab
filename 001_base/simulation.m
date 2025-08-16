@@ -2,15 +2,17 @@ clear all; close all; clc
 
 % params0 = [2.2493,4.1911,10.6015, 2.7464,0.77702, 49.714]; Fmax = 15;
 
-params0 = [2.2666, 2.5862, 13.1821, 3.94, 0.60381, 45.4725]; Fmax = 30; %J = 0.27639
-
+% params0 = [2.2666, 2.5862, 13.1821, 3.94, 0.60381, 45.4725]; Fmax = 30; %J = 0.27639
+params0 = [1.03 1.61 13 2.93 0.52 34.2]; Fmax = 30; %J = 0.27639
+% [Ke_pos Kde_pos Umax_pos Ke_theta Kde_theta Umax_theta] = [1.03 1.61 13 2.93 0.52 34.2];
+% Best Fitness J = 1.1
 M=0.5; m=0.2; l=0.3; g=9.81; I=(1/3)*m*l^2; b1=0.1; b2=0.05; 
 
 
 fis_pos   = readfis('files_created/fis_pos.fis');
 fis_theta = readfis('files_created/fis_theta.fis');
 
-y0 = [0.2; 0; -0.1; 0];
+y0 = [0.2; 0; -0.4; 0];
 tspan = [0 10];
 ref_pos =-0.2;
 ref_theta = 0;

@@ -1,5 +1,5 @@
 clc; clear; close all;
-
+% delete(gcp('nocreate'));
 % === GA bounds ===
 lb = [0 0  0   0 0  0];     % lower bounds
 ub = [2 2  40   3 3 40];     % upper bounds
