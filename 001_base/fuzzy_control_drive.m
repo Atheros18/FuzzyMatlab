@@ -1,4 +1,4 @@
-function [tauL, tauR, F_cmd, Mz_cmd] = fuzzy_control_drive(t, y, fis_pos, fis_theta, pars, ref_fun)
+function [tauL, tauR, F_cmd, Mz_cmd] = fuzzy_control_drive(t, y, param, fis_pos, fis_theta, pars, ref_fun)
 % y = [x;yW;psi; v; r; theta; thetadot]
 x = y(1); psi = y(3); v = y(4); r = y(5); th = y(6); thd = y(7);
 
@@ -10,10 +10,10 @@ eth  = ref.th - th;    deth = -thd;    % angle
 epsi = ref.psi- psi;   dr   = -r;      % yaw
 
 % --- Normalize into [-1,1] with physical bounds ---
-exn   = max(min(pars.Ke_pos  * ex / pars.EX_MAX,  0.999), -0.999);
-dexn  = max(min(pars.Kde_pos * dex/ pars.DX_MAX,  0.999), -0.999);
-ethn  = max(min(pars.Ke_th   * eth/ pi,           0.999), -0.999);
-dethn = max(min(pars.Kde_th  * deth/pars.DTH_MAX, 0.999), -0.999);
+exn   = max(min(param.Ke_pos  * ex / pars.EX_MAX,  0.999), -0.999);
+dexn  = max(min(param.Kde_pos * dex/ pars.DX_MAX,  0.999), -0.999);
+ethn  = max(min(param.Ke_th   * eth/ pi,           0.999), -0.999);
+dethn = max(min(param.Kde_th  * deth/pars.DTH_MAX, 0.999), -0.999);
 
 % --- DC-bias cancellation on both FIS outputs ---
 Upos_raw   = evalfis(fis_pos,   [exn,  dexn]);
@@ -21,8 +21,8 @@ persistent U0_pos; if isempty(U0_pos), U0_pos = evalfis(fis_pos,   [0 0]); end
 Utheta_raw = evalfis(fis_theta, [ethn, dethn]);
 persistent U0_th;  if isempty(U0_th),  U0_th  = evalfis(fis_theta, [0 0]); end
 
-Upos   = pars.Umax_pos * (Upos_raw   - U0_pos);
-Utheta = pars.Umax_th  * (Utheta_raw - U0_th);
+Upos   = param.Umax_pos * (Upos_raw   - U0_pos);
+Utheta = param.Umax_th  * (Utheta_raw - U0_th);
 
 F_cmd  = Upos + Utheta;
 F_cmd  = max(min(F_cmd, pars.Fmax), -pars.Fmax);

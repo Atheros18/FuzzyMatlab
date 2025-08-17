@@ -19,8 +19,8 @@ pars.Mz_max = 5;     % N·m
 pars.tau_max = 2;    % N·m  (per wheel)
 
 %% ====== Fuzzy/PD gains (placeholders; you can GA-tune) ======
-pars.Ke_pos  = 1.5;  pars.Kde_pos = 0.8;  pars.Umax_pos = 10;
-pars.Ke_th   = 3.0;  pars.Kde_th  = 0.8;  pars.Umax_th  = 25;
+param.Ke_pos  = 1.5;  param.Kde_pos = 0.8;  param.Umax_pos = 10;
+param.Ke_th   = 3.0;  param.Kde_th  = 0.8;  param.Umax_th  = 25;
 
 % Normalization bounds (replace magic numbers /3 /5 /pi /8)
 pars.EX_MAX  = 3;      % [m]
@@ -43,7 +43,7 @@ ref_fun = @(t) struct('x',0,'psi', (t>=2)*deg2rad(30), 'th',0);
 y0 = [0; 0; 0; 0; 0; 0.2; 0];  % start near-upright
 
 %% ====== ODE solve ======
-ctrl = @(t,y) fuzzy_control_drive(t,y,fis_pos,fis_theta,pars,ref_fun);  % returns [tauL,tauR,F_cmd,Mz_cmd]
+ctrl = @(t,y) fuzzy_control_drive(t,y,param,fis_pos,fis_theta,pars,ref_fun);  % returns [tauL,tauR,F_cmd,Mz_cmd]
 dyn  = @(t,y) pendcart_dyn_2d(t,y,pars,ctrl);
 
 tspan = [0 10];
