@@ -1,0 +1,141 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/Floor.proto"
+
+WorldInfo {
+  info [
+    "An example of hot to solve the Inverted Pendulum problem using a PID controller"
+  ]
+  title "Inverted Pendulum"
+  contactProperties [
+    ContactProperties {
+      material1 "robot_basis"
+      material2 "floor"
+      coulombFriction [
+        0.2
+      ]
+    }
+  ]
+}
+Viewpoint {
+  orientation -0.19883456431299482 0.1942986345084766 0.9605794379761639 1.5367098269378763
+  position -344.7303790128581 -6.717866225105551 2.7571529543602034
+  follow "robot:solid"
+}
+TexturedBackground {
+}
+Floor {
+  size 1000 2
+  appearance PBRAppearance {
+    baseColorMap ImageTexture {
+      url [
+        "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/default/worlds/textures/checkered_marble.jpg"
+      ]
+    }
+    roughness 1
+    metalness 0
+  }
+}
+Robot {
+  translation 6401.545395809549 0.002925908263142817 0.004803782093439995
+  rotation -6.4235865690767535e-09 -0.00047907298996867587 0.9999998852445287 3.141587180918045
+  children [
+    SliderJoint {
+      jointParameters JointParameters {
+        position 6748.857903159975
+        axis 1 0 0
+        dampingConstant 1.5
+        staticFriction 0.1
+      }
+      device [
+        LinearMotor {
+          name "cart_motor"
+          maxVelocity 100
+          maxForce 40
+        }
+        PositionSensor {
+          name "cart_sensor"
+        }
+      ]
+      endPoint Solid {
+        translation 6746.911352243431 -1.98624e-08 0.0597935
+        rotation -4.702019234404521e-05 0.9999993591980619 0.0011311023681994392 0.00012976890777390687
+        children [
+          DEF ROBOT_SHAPE Shape {
+            appearance PBRAppearance {
+              baseColor 0.2443427176317998 0.704051270313573 0.1756923781185626
+              roughness 1
+              metalness 0
+            }
+            geometry Box {
+              size 0.3 0.1 0.1
+            }
+          }
+          DEF HIP HingeJoint {
+            jointParameters HingeJointParameters {
+              position 0.008231363823861117
+              axis 0 1 0
+              anchor 0 0 0.03
+              staticFriction 0.05
+            }
+            device [
+              PositionSensor {
+                name "pendulum_sensor"
+              }
+            ]
+            endPoint DEF THIGH_BB Solid {
+              translation 0.0008232752499775972 0 0.1300146116418136
+              rotation 6.960140238073977e-05 0.9999999975506506 -7.371806360463062e-06 0.008069961850709809
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColor 0.8496833752956435 0.07072556649118791 0.09393453879606317
+                    roughness 1
+                    metalness 0
+                  }
+                  geometry DEF THIGH_BOX Box {
+                    size 0.05 0.02 0.3
+                  }
+                }
+              ]
+              boundingObject USE THIGH_BOX
+              physics Physics {
+                density -1
+                mass 0.2
+                centerOfMass [
+                  0 0.061 -0.27
+                ]
+              }
+              linearVelocity -1.2301756957014435e-05 6.148192867061352e-10 2.0658131205664177e-10
+              angularVelocity 7.892609461769835e-11 2.6912565168563637e-08 5.43952192819678e-09
+            }
+          }
+          PointLight {
+            attenuation 0 0 1
+            intensity 5
+            location 0 0 2
+          }
+        ]
+        contactMaterial "robot_basis"
+        boundingObject USE ROBOT_SHAPE
+        physics Physics {
+          density -1
+          mass 0.5
+        }
+        linearVelocity -1.2297608846272118e-05 5.97130112287033e-10 7.821219433086378e-12
+        angularVelocity 7.920156626848037e-11 6.482867420027767e-12 5.413068659056112e-09
+      }
+    }
+  ]
+  boundingObject Box {
+    size 200 0.1 0.01
+  }
+  physics Physics {
+    density -1
+    mass 0.5
+  }
+  controller "my_controller"
+  linearVelocity 6.653907297224559 -6.01531528353176e-10 -4.866973677455341e-12
+  angularVelocity 7.922994875951874e-11 -1.320459164417625e-11 3.549263890142863e-10
+}
